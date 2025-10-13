@@ -1,0 +1,65 @@
+1 - Introdução (3º Finalizar)
+- Problema
+- Motivação pq e importante resolver?
+- Trabalho relacionados(Citar)
+    1-Contexto -> Pq e importante
+    2-Qual o problema -> tem outras pessoa fazendo tbm, implicações do problema
+    3-Como o prob. foi resolvido Anteriores -> Fofoca
+    4-Como eu vai resolver -> As far os we know, To our knowledge
+    5-Parágrafo final
+
+
+2 - Materials and methods (5º Finalizar)
+- Nome da base, qnt amostras, descrição das classes e variaveis
+- Pre-processamento e transformação(Como foi feito)
+- Informações da base, amostras e variaveis
+- Método e fluxograma (explicação em texto e formulas)
+    - explicar os algoritmo 
+    - parâmetros de treinamento 
+    - divisão dos dados
+    - métricas de desempenho
+
+3 - Results and Discussion (1º Começa aqui)
+- Caracterização das amostras (PCA)
+- Pre-processamento e transformação(Resultados, Seleção de variaveis)
+- Resultados da classificação(Figura/Tabela)
+- (Tabela dos Trabalhos Anteriores)
+- Discussão (Nao fazer uma discussão fofoca(Falar muito dos artigos dos outros), Comparar/Relaciona as implicações dos seus resultados com a literatura)
+- Trabalho relacionados(Desenvolver/Relacionar)
+
+
+4 - Conclusion (2º Rascunhar, 4º Finalizar)
+- Responder a pergunta: E aí? Solucionou o problema.
+- Nao repetir tudo q vc fez no trabalho
+- Resolveu o problema proposto? Se sim, falar os resultados.
+- Como a metodologia pode ser usada em outras pesquisas?
+- Limitações no estudo
+- Trabalhos futuros(Não viajar)
+
+----------
+
+Graphical Abstract
+- 'Cativar o leitor'
+
+
+Highlights (7º Finalizar)
+- 4 a 6 pontos de destaque (80-100 caracteres)
+
+
+Title (6º Finalizar)
+
+
+Abstract (6º Finalizar)
+
+
+---------
+
+- Base de dados
+
+- Histórico do que foi feito com essa base
+    - Tabela relacionando algoritmos/resultados de outro artigos/Trabalhos
+
+- Plano de analise de dados 
+    - Resultados
+
+- Histórico da pesquisa

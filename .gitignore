@@ -47,3 +47,4 @@ po/*~
 
 # RStudio Connect folder
 rsconnect/
+projeto_tc/data/raw/01-Credit Card Fraud Detection/creditcard.csv
