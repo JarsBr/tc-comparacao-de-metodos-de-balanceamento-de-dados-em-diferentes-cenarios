@@ -67,8 +67,8 @@ balancear_rose <- function(df) {
   })
 }
 
-# 3️⃣ Subamostragem Aleatória (Downsampling)
-balancear_simples_da <- function(df) {
+# 3️⃣ Undersampling Aleatório
+balancear_undersampling <- function(df) {
   if (!"Class" %in% names(df)) stop("Variável alvo 'Class' não encontrada.")
   tryCatch({
     classes <- table(df$Class)
@@ -79,7 +79,24 @@ balancear_simples_da <- function(df) {
       ungroup()
     return(df_bal)
   }, error = function(e) {
-    warning(paste("Erro ao aplicar subamostragem:", e$message))
+    warning(paste("Erro ao aplicar undersampling:", e$message))
+    return(df)
+  })
+}
+
+# 4️⃣ Oversampling Aleatório
+balancear_oversampling <- function(df) {
+  if (!"Class" %in% names(df)) stop("Variável alvo 'Class' não encontrada.")
+  tryCatch({
+    classes <- table(df$Class)
+    n_max <- max(classes)
+    df_bal <- df %>%
+      group_by(Class) %>%
+      sample_n(n_max, replace = TRUE) %>%
+      ungroup()
+    return(df_bal)
+  }, error = function(e) {
+    warning(paste("Erro ao aplicar oversampling:", e$message))
     return(df)
   })
 }
@@ -88,11 +105,12 @@ balancear_simples_da <- function(df) {
 # Aplica os balanceamentos
 # ============================================================
 
-cat("\n⚖️  Aplicando balanceamentos...\n")
+cat("\n⚖️  Aplicando técnicas de balanceamento...\n")
 
 bases_smote <- lapply(lista_bases_raw, balancear_smote)
 bases_rose  <- lapply(lista_bases_raw, balancear_rose)
-bases_sda   <- lapply(lista_bases_raw, balancear_simples_da)
+bases_under <- lapply(lista_bases_raw, balancear_undersampling)
+bases_over  <- lapply(lista_bases_raw, balancear_oversampling)
 
 # ============================================================
 # Salva resultados
@@ -100,11 +118,13 @@ bases_sda   <- lapply(lista_bases_raw, balancear_simples_da)
 
 save(bases_smote, file = file.path(dir_processed, "lista_bases_smote.RData"))
 save(bases_rose,  file = file.path(dir_processed, "lista_bases_rose.RData"))
-save(bases_sda,   file = file.path(dir_processed, "lista_bases_sda.RData"))
+save(bases_under, file = file.path(dir_processed, "lista_bases_undersampling.RData"))
+save(bases_over,  file = file.path(dir_processed, "lista_bases_oversampling.RData"))
 
 cat("\n💾 Bases balanceadas salvas em data/processed/:")
 cat("\n   - lista_bases_smote.RData")
 cat("\n   - lista_bases_rose.RData")
-cat("\n   - lista_bases_sda.RData\n")
+cat("\n   - lista_bases_undersampling.RData")
+cat("\n   - lista_bases_oversampling.RData\n")
 
 cat("\n✅ Script concluído com sucesso!\n")

@@ -1,0 +1,36 @@
+Base,Modelo,TempoMedio
+01-Credit Card Fraud Detection,ann,107.14700508117676
+01-Credit Card Fraud Detection,arvore,18.29782485961914
+01-Credit Card Fraud Detection,logistico,8.267029762268066
+01-Credit Card Fraud Detection,rf,97.53035497665405
+01-Credit Card Fraud Detection,svm,0
+02-Breast Cancer Wisconsin (Diagnostic),ann,0.01848602294921875
+02-Breast Cancer Wisconsin (Diagnostic),arvore,0.032240867614746094
+02-Breast Cancer Wisconsin (Diagnostic),logistico,0.06331396102905273
+02-Breast Cancer Wisconsin (Diagnostic),rf,0.11836600303649902
+02-Breast Cancer Wisconsin (Diagnostic),svm,0.045735836029052734
+03-Pima Indians Diabetes,ann,0.1222238540649414
+03-Pima Indians Diabetes,arvore,0.0335850715637207
+03-Pima Indians Diabetes,logistico,0.03122687339782715
+03-Pima Indians Diabetes,rf,0.17042899131774902
+03-Pima Indians Diabetes,svm,0.08366203308105469
+04-Ionosphere,ann,0.13303494453430176
+04-Ionosphere,arvore,0.039724111557006836
+04-Ionosphere,logistico,0.05707502365112305
+04-Ionosphere,rf,0.09392905235290527
+04-Ionosphere,svm,0.037513017654418945
+05-phoneme,ann,0.6831710338592529
+05-phoneme,arvore,0.07228899002075195
+05-phoneme,logistico,0.06427502632141113
+05-phoneme,rf,0.8236119747161865
+05-phoneme,svm,2.3115038871765137
+06-The Mammography (Kevin Woods),ann,1.175520896911621
+06-The Mammography (Kevin Woods),arvore,0.1607818603515625
+06-The Mammography (Kevin Woods),logistico,0.16696691513061523
+06-The Mammography (Kevin Woods),rf,0
+06-The Mammography (Kevin Woods),svm,8.974594831466675
+07-Oil Spill Imbalanced Classification,ann,0.027166128158569336
+07-Oil Spill Imbalanced Classification,arvore,0.11380887031555176
+07-Oil Spill Imbalanced Classification,logistico,0.15559697151184082
+07-Oil Spill Imbalanced Classification,rf,0
+07-Oil Spill Imbalanced Classification,svm,0.21814894676208496
