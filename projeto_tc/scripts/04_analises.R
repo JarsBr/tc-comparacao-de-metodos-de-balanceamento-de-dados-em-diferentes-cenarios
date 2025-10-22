@@ -7,18 +7,16 @@
 
 rm(list = ls())
 
-# Pacotes necessários
 library(dplyr)
 library(ggplot2)
 library(tidyr)
 library(readr)
 
-# Caminhos
 dir_processed <- "data/processed/"
 dir_metricas  <- "resultados/metricas/"
 dir_graficos  <- "resultados/graficos/"
 
-# Cria pastas de saída, se não existirem
+# Criar pastas de resultados
 if (!dir.exists(dir_metricas)) dir.create(dir_metricas, recursive = TRUE)
 if (!dir.exists(dir_graficos)) dir.create(dir_graficos, recursive = TRUE)
 
@@ -67,7 +65,7 @@ metricas_resumo <- resultados_finais %>%
 write_csv(metricas_resumo, file.path(dir_metricas, "metricas_resumo.csv"))
 
 # ------------------------------------------------------------
-# 🔍 Análise detalhada por base
+# Análise detalhada por base
 # ------------------------------------------------------------
 metricas_por_base <- resultados_finais %>%
   select(Base, Balanceamento, Modelo, Acuracia, Precisao, Recall, F1)
@@ -75,10 +73,10 @@ metricas_por_base <- resultados_finais %>%
 write_csv(metricas_por_base, file.path(dir_metricas, "metricas_por_base.csv"))
 
 # ------------------------------------------------------------
-# 📊 Gráficos comparativos
+# Gráficos comparativos
 # ------------------------------------------------------------
 
-# 1️⃣ Comparação geral de F1 por modelo e técnica
+# 1- Comparação geral de F1 por modelo e técnica
 grafico_f1 <- ggplot(metricas_resumo, aes(x = Balanceamento, y = F1, fill = Modelo)) +
   geom_bar(stat = "identity", position = position_dodge()) +
   labs(
@@ -89,7 +87,7 @@ grafico_f1 <- ggplot(metricas_resumo, aes(x = Balanceamento, y = F1, fill = Mode
 
 ggsave(file.path(dir_graficos, "comparacao_F1.png"), grafico_f1, width = 8, height = 5)
 
-# 2️⃣ Boxplot de acurácia por técnica
+# 2- Boxplot de acurácia por técnica
 grafico_acc <- ggplot(resultados_finais, aes(x = Balanceamento, y = Acuracia, fill = Balanceamento)) +
   geom_boxplot() +
   labs(title = "Distribuição da Acurácia por Técnica de Balanceamento", y = "Acurácia", x = "") +
@@ -98,7 +96,7 @@ grafico_acc <- ggplot(resultados_finais, aes(x = Balanceamento, y = Acuracia, fi
 
 ggsave(file.path(dir_graficos, "boxplot_Acuracia.png"), grafico_acc, width = 7, height = 5)
 
-# 3️⃣ Heatmap comparando F1 entre modelos e técnicas
+# 3- Heatmap comparando F1 entre modelos e técnicas
 grafico_heat <- metricas_resumo %>%
   ggplot(aes(x = Modelo, y = Balanceamento, fill = F1)) +
   geom_tile(color = "white") +
@@ -113,7 +111,7 @@ ggsave(file.path(dir_graficos, "heatmap_F1.png"), grafico_heat, width = 7, heigh
 # Mensagem final
 # ------------------------------------------------------------
 cat("\n✅ Análises concluídas com sucesso!")
-cat("\n💾 Arquivos salvos em:")
+cat("\n   Arquivos salvos em:")
 cat("\n   - resultados/metricas/metricas_resumo.csv")
 cat("\n   - resultados/metricas/metricas_por_base.csv")
 cat("\n   - resultados/graficos/*.png\n")

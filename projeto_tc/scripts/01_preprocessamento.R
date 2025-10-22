@@ -2,19 +2,17 @@
 # Script: 01_preprocessamento.R
 # Objetivo: Ler, limpar e padronizar todas as bases de dados
 # Estrutura: cada base está em uma subpasta dentro de data/raw/
-# Suporte: arquivos .csv e .data (+ leitura de arquivos com nomes de colunas)
+# Suporte: arquivos .csv e .data (+ leitura de arquivos com nomes de colunas, alguns casos)
 # Saída: objeto lista_bases_raw salvo em data/processed/
 # ==========================================
 
 rm(list = ls())
 
-# Pacotes necessários
 library(dplyr)
 library(readr)
 library(stringr)
 library(tools)
 
-# Caminhos
 dir_raw <- "data/raw/"
 dir_processed <- "data/processed/"
 
@@ -37,7 +35,7 @@ ler_nomes_colunas <- function(pasta) {
   if (length(arquivos_nomes) > 0) {
     cat("   ↳ Nomes de colunas encontrados em:", basename(arquivos_nomes[1]), "\n")
     nomes <- readLines(arquivos_nomes[1])
-    nomes <- nomes[nchar(nomes) > 0]  # remove linhas vazias
+    nomes <- nomes[nchar(nomes) > 0]
     nomes <- str_trim(nomes)
     nomes <- str_replace_all(nomes, "[^[:alnum:]_]", "_")
     return(nomes)
@@ -62,9 +60,9 @@ ler_arquivo_generico <- function(caminho_arquivo) {
 preprocessar_base <- function(caminho_arquivo) {
   pasta <- dirname(caminho_arquivo)
   nome_base <- basename(pasta)
-  cat("📂 Processando base:", nome_base, "\n")
+  cat(" Processando base:", nome_base, "\n")
   
-  # Lê dados
+  # Le dados
   dados <- ler_arquivo_generico(caminho_arquivo)
   
   # Se existir arquivo de nomes de colunas, substitui
@@ -85,10 +83,10 @@ preprocessar_base <- function(caminho_arquivo) {
     }
   }
   
-  # Remove colunas totalmente vazias
+  # Remove colunas totalmente vazias -- Acredito nao ter nenhuma nas nossa base, mas deixei por garantia
   dados <- dados[, colSums(is.na(dados)) < nrow(dados)]
   
-  # Preenche NAs numéricos com mediana
+  # Preenche NAs numéricos com mediana-- Acredito nao ter nenhuma nas nossa base, mas deixei por garantia
   dados <- dados %>%
     mutate(across(where(is.numeric), ~ifelse(is.na(.), median(., na.rm = TRUE), .)))
   
@@ -96,7 +94,7 @@ preprocessar_base <- function(caminho_arquivo) {
   if ("Class" %in% names(dados)) {
     dados$Class <- as.factor(dados$Class)
   } else {
-    warning(paste("⚠️  A base", nome_base, "não contém variável alvo identificável."))
+    warning(paste("A base", nome_base, "não contém variável alvo identificável."))
   }
   
   return(dados)
@@ -119,11 +117,9 @@ for (pasta in subpastas) {
   lista_bases_raw[[basename(pasta)]] <- dados
 }
 
-# Cria pasta de saída
-if (!dir.exists(dir_processed)) dir.create(dir_processed, recursive = TRUE)
-
-# Salva a lista consolidada
+# Cria pasta de saída e salva a lista consolidada
+if (!dir.exists(dir_processed)) dir.create(dir_processed, recursive = TRUE) # Coloquei pois estava apagando a pasta para rodar de novo
 save(lista_bases_raw, file = file.path(dir_processed, "lista_bases_raw.RData"))
 
 cat("\n✅ Pré-processamento concluído!")
-cat("\n👉 Lista salva em data/processed/lista_bases_raw.RData\n")
+cat("\n Lista salva em data/processed/lista_bases_raw.RData\n")

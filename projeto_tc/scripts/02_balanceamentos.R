@@ -1,24 +1,22 @@
-# ==========================================
+# ============================================================
 # Script: 02_balanceamentos.R
 # Objetivo: Gerar versões balanceadas das bases pré-processadas
-# Métodos: ROSE, SMOTE (smotefamily), Subamostragem Aleatória (SDA)
+# Métodos: SMOTE (smotefamily), ROSE, Undersampling Aleatório e Oversampling Aleatório
 # Entrada: data/processed/lista_bases_raw.RData
-# Saída:   data/processed/lista_bases_[metodo].RData
-# ==========================================
+# Saída:   data/processed/lista_bases_[smote|rose|undersampling|oversampling].RData
+# ============================================================
 
 rm(list = ls())
 
-# Pacotes necessários
 library(smotefamily)
 library(ROSE)
 library(dplyr)
 library(caret)
 
-# Caminhos
 dir_processed <- "data/processed/"
 arquivo_raw <- file.path(dir_processed, "lista_bases_raw.RData")
 
-# Carrega as bases pré-processadas
+# Carrega as bases pre-processadas
 if (!file.exists(arquivo_raw)) {
   stop("⚠️ O arquivo 'lista_bases_raw.RData' não foi encontrado.
        Execute primeiro o script 01_preprocessamento.R.")
@@ -31,7 +29,7 @@ cat("✅ Lista de bases carregada com sucesso!\n")
 # Funções de balanceamento
 # ============================================================
 
-# 1️⃣ SMOTE (usando smotefamily)
+# 1 SMOTE (usando smotefamily)
 balancear_smote <- function(df, k = 5) {
   if (!"Class" %in% names(df)) stop("Variável alvo 'Class' não encontrada.")
   
@@ -55,7 +53,7 @@ balancear_smote <- function(df, k = 5) {
   })
 }
 
-# 2️⃣ ROSE
+# 2 ROSE
 balancear_rose <- function(df) {
   if (!"Class" %in% names(df)) stop("Variável alvo 'Class' não encontrada.")
   tryCatch({
@@ -67,7 +65,7 @@ balancear_rose <- function(df) {
   })
 }
 
-# 3️⃣ Undersampling Aleatório
+# 3 Undersampling Aleatório
 balancear_undersampling <- function(df) {
   if (!"Class" %in% names(df)) stop("Variável alvo 'Class' não encontrada.")
   tryCatch({
@@ -84,7 +82,7 @@ balancear_undersampling <- function(df) {
   })
 }
 
-# 4️⃣ Oversampling Aleatório
+# 4 Oversampling Aleatório
 balancear_oversampling <- function(df) {
   if (!"Class" %in% names(df)) stop("Variável alvo 'Class' não encontrada.")
   tryCatch({
@@ -105,7 +103,7 @@ balancear_oversampling <- function(df) {
 # Aplica os balanceamentos
 # ============================================================
 
-cat("\n⚖️  Aplicando técnicas de balanceamento...\n")
+cat("\nAplicando técnicas de balanceamento...\n")
 
 bases_smote <- lapply(lista_bases_raw, balancear_smote)
 bases_rose  <- lapply(lista_bases_raw, balancear_rose)
@@ -121,7 +119,7 @@ save(bases_rose,  file = file.path(dir_processed, "lista_bases_rose.RData"))
 save(bases_under, file = file.path(dir_processed, "lista_bases_undersampling.RData"))
 save(bases_over,  file = file.path(dir_processed, "lista_bases_oversampling.RData"))
 
-cat("\n💾 Bases balanceadas salvas em data/processed/:")
+cat("\n Bases balanceadas salvas em data/processed/:")
 cat("\n   - lista_bases_smote.RData")
 cat("\n   - lista_bases_rose.RData")
 cat("\n   - lista_bases_undersampling.RData")

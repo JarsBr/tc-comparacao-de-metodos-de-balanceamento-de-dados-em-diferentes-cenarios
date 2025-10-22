@@ -1,16 +1,12 @@
-# ==========================================
+# ============================================================
 # Script: 03_modelos.R
 # Objetivo: Treinar e avaliar modelos de classificação
-# Modelos: Regressão Logística, Árvore, Random Forest (ranger) e SVM (automático linear/kernel)
+# Modelos: Regressão Logística, Árvore, Random Forest (ranger), SVM e Rede Neural (nnet)
 # Paralelização: doParallel + foreach (com cluster reutilizável)
-# Progresso: progressr
-# ==========================================
+# ============================================================
 
 rm(list = ls())
 
-# ------------------------------------------------------------
-# Pacotes necessários
-# ------------------------------------------------------------
 library(caret)
 library(rpart)
 library(ranger)
@@ -19,14 +15,12 @@ library(LiblineaR)
 library(dplyr)
 library(foreach)
 library(doParallel)
-library(progressr)
 library(readr)
+library(nnet)
 
 # ------------------------------------------------------------
-# Funções auxiliares
+# Métricas de desempenho
 # ------------------------------------------------------------
-
-# 🧮 Métricas de desempenho
 calcular_metricas <- function(real, previsto) {
   cm <- confusionMatrix(data = previsto, reference = real, positive = levels(real)[2])
   tibble(
@@ -41,7 +35,7 @@ calcular_metricas <- function(real, previsto) {
 # Função: treinar e avaliar um modelo genérico
 # ------------------------------------------------------------
 treinar_modelo <- function(df, metodo, proporcao_treino = 0.7, nome_base = "desconhecida") {
-  if (!"Class" %in% names(df)) stop("Variável alvo 'Class' não encontrada.")
+  if (!"Class" %in% names(df)) stop("⚠️ Variável alvo 'Class' não encontrada.")
   
   set.seed(123)
   idx <- createDataPartition(df$Class, p = proporcao_treino, list = FALSE)
@@ -74,8 +68,6 @@ treinar_modelo <- function(df, metodo, proporcao_treino = 0.7, nome_base = "desc
                        }
                      },
                      "ann" = {
-                       # Rede Neural (Multilayer Perceptron)
-                       # É necessário converter a variável resposta para numérica binária
                        treino_nn <- treino
                        teste_nn  <- teste
                        treino_nn$Class <- as.numeric(treino$Class) - 1
@@ -83,7 +75,7 @@ treinar_modelo <- function(df, metodo, proporcao_treino = 0.7, nome_base = "desc
                                             size = 5, maxit = 300, decay = 1e-4, trace = FALSE)
                        modelo
                      },
-                     stop("Método desconhecido.")
+                     stop("⚠️ Método desconhecido.")
     )
     
     # Predição
@@ -119,7 +111,7 @@ treinar_modelo <- function(df, metodo, proporcao_treino = 0.7, nome_base = "desc
     
     metricas
   }, error = function(e) {
-    warning(paste("Erro ao treinar modelo", metodo, ":", e$message))
+    warning(paste("⚠️ Erro ao treinar modelo", metodo, ":", e$message))
     tibble(
       Acuracia = NA, Precisao = NA, Recall = NA, F1 = NA,
       TempoSeg = 0, Modelo = metodo, Base = nome_base
@@ -138,7 +130,7 @@ treinar_todos_modelos <- function(df, nome_base = "desconhecida") {
     treinar_modelo(df, "arvore",    nome_base = nome_base),
     treinar_modelo(df, "rf",        nome_base = nome_base),
     treinar_modelo(df, "svm",       nome_base = nome_base),
-    treinar_modelo(df, "ann",       nome_base = nome_base)  # 🚀 nova ANN
+    treinar_modelo(df, "ann",       nome_base = nome_base)
   )
 }
 
@@ -149,28 +141,25 @@ iniciar_cluster <- function() {
   num_cores <- max(1, parallel::detectCores() - 1)
   cl <- parallel::makeCluster(num_cores)
   doParallel::registerDoParallel(cl)
-  cat(paste0("⚙️ Cluster inicializado com ", num_cores, " núcleos.\n"))
+  cat(paste0("Cluster inicializado com ", num_cores, " núcleos.\n"))
   return(cl)
 }
 
 finalizar_cluster <- function(cl) {
   if (!is.null(cl)) {
     parallel::stopCluster(cl)
-    foreach::registerDoSEQ()   # ✅ corrigido: vem de foreach, não de doParallel
-    cat("🧩 Cluster finalizado.\n")
+    foreach::registerDoSEQ()
+    cat("Cluster finalizado.\n")
   }
 }
 
 # ------------------------------------------------------------
-# Função principal: aplicar em várias bases (paralelo + barra)
+# Função principal: aplicar em várias bases (paralelo)
 # ------------------------------------------------------------
 treinar_em_lista <- function(lista_bases, cl = NULL) {
   own_cluster <- is.null(cl)
   if (own_cluster) cl <- iniciar_cluster()
   on.exit(if (own_cluster) finalizar_cluster(cl), add = TRUE)
-  
-  progressr::handlers("txtprogressbar")
-  p <- progressr::progressor(steps = length(lista_bases))
   
   # Exporta funções e dependências
   parallel::clusterExport(cl, varlist = c(
@@ -182,12 +171,12 @@ treinar_em_lista <- function(lista_bases, cl = NULL) {
     .combine = bind_rows,
     .packages = c(
       "caret", "rpart", "ranger", "e1071", "LiblineaR",
-      "dplyr", "progressr"
+      "dplyr", "nnet"
     )
   ) %dopar% {
     df <- lista_bases[[nome_base]]
     res <- treinar_todos_modelos(df, nome_base = nome_base)
-    p(message = paste("Concluído:", nome_base))
+    cat(paste0("✅ Concluído: ", nome_base, "\n"))
     res
   }
   
@@ -203,15 +192,3 @@ treinar_em_lista <- function(lista_bases, cl = NULL) {
   
   return(resultados)
 }
-
-# ------------------------------------------------------------
-# Exemplo de uso manual (opcional)
-# ------------------------------------------------------------
-# load("data/processed/lista_bases_raw.RData")
-# cl <- iniciar_cluster()
-# with_progress({
-#   resultados_raw <- treinar_em_lista(lista_bases_raw, cl)
-# })
-# finalizar_cluster(cl)
-# save(resultados_raw, file = "data/processed/resultados_raw.RData")
-# cat("\n✅ Modelos treinados e resultados salvos!\n")
