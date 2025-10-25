@@ -26,7 +26,7 @@ if (!dir.exists(dir_graficos)) dir.create(dir_graficos, recursive = TRUE)
 arquivos <- list.files(dir_processed, pattern = "resultados_.*\\.RData$", full.names = TRUE)
 
 if (length(arquivos) == 0) {
-  stop("⚠️ Nenhum arquivo de resultados encontrado em data/processed/.
+  stop("Nenhum arquivo de resultados encontrado em data/processed/.
        Execute antes o script 03_modelos.R.")
 }
 
@@ -73,7 +73,47 @@ metricas_por_base <- resultados_finais %>%
 write_csv(metricas_por_base, file.path(dir_metricas, "metricas_por_base.csv"))
 
 # ------------------------------------------------------------
-# Gráficos comparativos
+# Novos gráficos solicitados
+# ------------------------------------------------------------
+
+# 1 - Boxplots de Acurácia e F1 para avaliar dispersão
+grafico_box_acc <- ggplot(metricas_por_base, aes(x = Balanceamento, y = Acuracia, fill = Balanceamento)) +
+  geom_boxplot() +
+  labs(
+    title = "Boxplot de Acurácia por Técnica de Balanceamento",
+    x = "Técnica de Balanceamento", y = "Acurácia"
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(legend.position = "none")
+
+grafico_box_f1 <- ggplot(metricas_por_base, aes(x = Balanceamento, y = F1, fill = Balanceamento)) +
+  geom_boxplot() +
+  labs(
+    title = "Boxplot de F1-Score por Técnica de Balanceamento",
+    x = "Técnica de Balanceamento", y = "F1-Score"
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(legend.position = "none")
+
+ggsave(file.path(dir_graficos, "boxplot_Acuracia_por_base.png"), grafico_box_acc, width = 7, height = 5)
+ggsave(file.path(dir_graficos, "boxplot_F1_por_base.png"), grafico_box_f1, width = 7, height = 5)
+
+# 2 - Barras agrupadas por técnica (comparar estabilidade entre métricas)
+metricas_long <- metricas_resumo %>%
+  pivot_longer(cols = c(Acuracia, F1), names_to = "Metrica", values_to = "Valor")
+
+grafico_barras_metricas <- ggplot(metricas_long, aes(x = Balanceamento, y = Valor, fill = Metrica)) +
+  geom_bar(stat = "identity", position = position_dodge()) +
+  labs(
+    title = "Comparação de Acurácia e F1-Score por Técnica de Balanceamento",
+    x = "Técnica de Balanceamento", y = "Valor Médio"
+  ) +
+  theme_minimal(base_size = 13)
+
+ggsave(file.path(dir_graficos, "barras_Acuracia_F1.png"), grafico_barras_metricas, width = 8, height = 5)
+
+# ------------------------------------------------------------
+# Gráficos comparativos (originais)
 # ------------------------------------------------------------
 
 # 1- Comparação geral de F1 por modelo e técnica
@@ -110,8 +150,8 @@ ggsave(file.path(dir_graficos, "heatmap_F1.png"), grafico_heat, width = 7, heigh
 # ------------------------------------------------------------
 # Mensagem final
 # ------------------------------------------------------------
-cat("\n✅ Análises concluídas com sucesso!")
-cat("\n   Arquivos salvos em:")
-cat("\n   - resultados/metricas/metricas_resumo.csv")
-cat("\n   - resultados/metricas/metricas_por_base.csv")
-cat("\n   - resultados/graficos/*.png\n")
+cat("\nAnálises concluídas com sucesso!")
+cat("\nArquivos salvos em:")
+cat("\n - resultados/metricas/metricas_resumo.csv")
+cat("\n - resultados/metricas/metricas_por_base.csv")
+cat("\n - resultados/graficos/*.png\n")
