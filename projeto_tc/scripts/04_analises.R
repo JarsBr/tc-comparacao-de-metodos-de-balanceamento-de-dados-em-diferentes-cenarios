@@ -127,15 +127,6 @@ grafico_f1 <- ggplot(metricas_resumo, aes(x = Balanceamento, y = F1, fill = Mode
 
 ggsave(file.path(dir_graficos, "comparacao_F1.png"), grafico_f1, width = 8, height = 5)
 
-# 2- Boxplot de acurácia por técnica
-grafico_acc <- ggplot(resultados_finais, aes(x = Balanceamento, y = Acuracia, fill = Balanceamento)) +
-  geom_boxplot() +
-  labs(title = "Distribuição da Acurácia por Técnica de Balanceamento", y = "Acurácia", x = "") +
-  theme_minimal(base_size = 13) +
-  theme(legend.position = "none")
-
-ggsave(file.path(dir_graficos, "boxplot_Acuracia.png"), grafico_acc, width = 7, height = 5)
-
 # 3- Heatmap comparando F1 entre modelos e técnicas
 grafico_heat <- metricas_resumo %>%
   ggplot(aes(x = Modelo, y = Balanceamento, fill = F1)) +

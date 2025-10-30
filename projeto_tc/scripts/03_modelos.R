@@ -45,62 +45,58 @@ treinar_modelo <- function(df, metodo, proporcao_treino = 0.7, nome_base = "desc
   t0 <- Sys.time()
   
   resultado <- tryCatch({
+    
+    # Controle de treinamento do caret
+    ctrl <- trainControl(
+      method = "cv",          # Validação cruzada
+      number = 3,             # 3-fold
+      classProbs = FALSE,     # Sem probabilidade
+      verboseIter = FALSE
+    )
+    
     modelo <- switch(metodo,
-                     "logistico" = glm(Class ~ ., data = treino, family = binomial),
-                     "arvore"    = rpart(Class ~ ., data = treino, method = "class"),
-                     "rf"        = ranger(
+                     "logistico" = caret::train(
                        Class ~ ., data = treino,
-                       num.trees = 200,
-                       probability = FALSE,
-                       num.threads = 1,
-                       respect.unordered.factors = "order"
+                       method = "glm",
+                       family = binomial,
+                       trControl = ctrl
                      ),
-                     "svm" = {
-                       if (nrow(treino) > 50000) {
-                         x <- as.matrix(dplyr::select(treino, -Class))
-                         y <- as.integer(treino$Class)
-                         fit <- LiblineaR(data = x, target = y, type = 0, cost = 1)
-                         estrutura <- list(fit = fit, levels = levels(treino$Class))
-                         class(estrutura) <- "svm_lin"
-                         estrutura
-                       } else {
-                         svm(Class ~ ., data = treino, kernel = "radial", probability = FALSE)
-                       }
-                     },
-                     "ann" = {
-                       treino_nn <- treino
-                       teste_nn  <- teste
-                       treino_nn$Class <- as.numeric(treino$Class) - 1
-                       modelo <- nnet::nnet(Class ~ ., data = treino_nn,
-                                            size = 5, maxit = 300, decay = 1e-4, trace = FALSE)
-                       modelo
-                     },
+                     
+                     "arvore" = caret::train(
+                       Class ~ ., data = treino,
+                       method = "rpart",
+                       trControl = ctrl,
+                       tuneLength = 3
+                     ),
+                     
+                     "rf" = caret::train(
+                       Class ~ ., data = treino,
+                       method = "ranger",
+                       trControl = ctrl,
+                       tuneLength = 3,
+                       importance = "impurity"
+                     ),
+                     
+                     "svm" = caret::train(
+                       Class ~ ., data = treino,
+                       method = "svmRadial",
+                       trControl = ctrl,
+                       tuneLength = 3
+                     ),
+                     
+                     "ann" = caret::train(
+                       Class ~ ., data = treino,
+                       method = "nnet",
+                       trControl = ctrl,
+                       tuneLength = 3,
+                       trace = FALSE
+                     ),
+                     
                      stop("⚠️ Método desconhecido.")
     )
     
     # Predição
-    if (metodo == "logistico") {
-      prev <- predict(modelo, newdata = teste, type = "response")
-      prev <- ifelse(prev > 0.5, levels(df$Class)[2], levels(df$Class)[1])
-    } else if (metodo == "rf") {
-      prev <- predict(modelo, data = teste)$predictions
-    } else if (metodo == "svm") {
-      if (inherits(modelo, "svm_lin")) {
-        px <- as.matrix(dplyr::select(teste, -Class))
-        prev <- predict(modelo$fit, px)
-        prev <- factor(modelo$levels[prev], levels = modelo$levels)
-      } else {
-        prev <- predict(modelo, newdata = teste)
-      }
-    } else if (metodo == "ann") {
-      teste_nn <- teste
-      px <- as.data.frame(teste_nn)
-      pred <- predict(modelo, newdata = px)
-      prev <- ifelse(pred > 0.5, levels(df$Class)[2], levels(df$Class)[1])
-    } else {
-      prev <- predict(modelo, newdata = teste, type = "class")
-    }
-    
+    prev <- predict(modelo, newdata = teste)
     prev <- factor(prev, levels = levels(df$Class))
     metricas <- calcular_metricas(teste$Class, prev)
     
@@ -120,6 +116,8 @@ treinar_modelo <- function(df, metodo, proporcao_treino = 0.7, nome_base = "desc
   
   return(resultado)
 }
+
+
 
 # ------------------------------------------------------------
 # Função: treinar todos os modelos em uma base
