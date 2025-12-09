@@ -89,23 +89,23 @@ tempos_execucao$modelos <- medir_tempo(
       
       cat("\n [1/5] Treinando modelos: RAW\n")
       resultados_raw <- treinar_em_lista(lista_bases_raw, cl)
-      save(resultados_raw, file = file.path(dir_processed, "resultados_raw.RData"))
+      saveRDS(resultados_raw, file.path(dir_processed, "resultados_raw.rds"))
       
       cat("\n [2/5] Treinando modelos: SMOTE\n")
       resultados_smote <- treinar_em_lista(bases_smote, cl)
-      save(resultados_smote, file = file.path(dir_processed, "resultados_smote.RData"))
+      saveRDS(resultados_smote, file.path(dir_processed, "resultados_smote.rds"))
       
       cat("\n [3/5] Treinando modelos: ROSE\n")
       resultados_rose <- treinar_em_lista(bases_rose, cl)
-      save(resultados_rose, file = file.path(dir_processed, "resultados_rose.RData"))
+      saveRDS(resultados_rose, file.path(dir_processed, "resultados_rose.rds"))
       
       cat("\n [4/5] Treinando modelos: UNDERSAMPLING\n")
       resultados_undersampling <- treinar_em_lista(bases_under, cl)
-      save(resultados_undersampling, file = file.path(dir_processed, "resultados_undersampling.RData"))
+      saveRDS(resultados_undersampling, file.path(dir_processed, "resultados_undersampling.rds"))
       
       cat("\n [5/5] Treinando modelos: OVERSAMPLING\n")
       resultados_oversampling <- treinar_em_lista(bases_over, cl)
-      save(resultados_oversampling, file = file.path(dir_processed, "resultados_oversampling.RData"))
+      saveRDS(resultados_oversampling, file.path(dir_processed, "resultados_oversampling.rds"))
       
       
       # Finaliza cluster

@@ -20,33 +20,34 @@ dir_graficos  <- "resultados/graficos/"
 if (!dir.exists(dir_metricas)) dir.create(dir_metricas, recursive = TRUE)
 if (!dir.exists(dir_graficos)) dir.create(dir_graficos, recursive = TRUE)
 
-# ------------------------------------------------------------
-# Carrega resultados
-# ------------------------------------------------------------
-arquivos <- list.files(dir_processed, pattern = "resultados_.*\\.RData$", full.names = TRUE)
+
+# --------------------------------------------
+# Carrega resultados (*.rds)
+# --------------------------------------------
+arquivos <- list.files(dir_processed, pattern = "resultados_.*\\.rds$", full.names = TRUE)
 
 if (length(arquivos) == 0) {
-  stop("Nenhum arquivo de resultados encontrado em data/processed/.
-       Execute antes o script 03_modelos.R.")
+  stop("Nenhum arquivo de resultados encontrado em data/processed/.")
 }
 
-# Função auxiliar: extrair nome do método (raw, smote, etc.)
 extrair_metodo <- function(caminho) {
-  gsub("resultados_|\\.RData", "", basename(caminho))
+  gsub("resultados_|\\.rds", "", basename(caminho))
 }
 
 lista_resultados <- list()
 
 for (arq in arquivos) {
-  load(arq)
   nome <- extrair_metodo(arq)
-  objeto <- get(paste0("resultados_", nome))
+  
+  objeto <- readRDS(arq)  # <-- segurança total
   objeto$Balanceamento <- toupper(nome)
+  
   lista_resultados[[nome]] <- objeto
 }
 
 # Junta tudo
 resultados_finais <- bind_rows(lista_resultados)
+
 
 # ------------------------------------------------------------
 # Consolidação geral (média por modelo e balanceamento)
