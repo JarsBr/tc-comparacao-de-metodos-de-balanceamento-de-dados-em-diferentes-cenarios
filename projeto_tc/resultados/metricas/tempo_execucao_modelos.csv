@@ -1,31 +1,31 @@
 Base,Modelo,TempoMedio
-02-Breast Cancer Wisconsin (Diagnostic),ann,0.7928309440612793
-02-Breast Cancer Wisconsin (Diagnostic),arvore,0.48687195777893066
-02-Breast Cancer Wisconsin (Diagnostic),logistico,0.39641284942626953
-02-Breast Cancer Wisconsin (Diagnostic),rf,3.3867058753967285
-02-Breast Cancer Wisconsin (Diagnostic),svm,1.1900138854980469
-03-Pima Indians Diabetes,ann,1.0851640701293945
-03-Pima Indians Diabetes,arvore,0.46711206436157227
-03-Pima Indians Diabetes,logistico,0.3440721035003662
-03-Pima Indians Diabetes,rf,3.7057199478149414
-03-Pima Indians Diabetes,svm,2.1877758502960205
-04-Ionosphere,ann,1.2615580558776855
-04-Ionosphere,arvore,0.476391077041626
-04-Ionosphere,logistico,0.3826150894165039
-04-Ionosphere,rf,3.140573024749756
-04-Ionosphere,svm,0.8928871154785156
-05-phoneme,ann,7.054508924484253
-05-phoneme,arvore,4.638947010040283
-05-phoneme,logistico,0.26740097999572754
-05-phoneme,rf,15.34403395652771
-05-phoneme,svm,58.74618697166443
-06-The Mammography (Kevin Woods),ann,18.500960111618042
-06-The Mammography (Kevin Woods),arvore,8.73343014717102
-06-The Mammography (Kevin Woods),logistico,0.5201449394226074
-06-The Mammography (Kevin Woods),rf,24.153083086013794
-06-The Mammography (Kevin Woods),svm,280.24592900276184
-07-Oil Spill Imbalanced Classification,ann,2.0051329135894775
-07-Oil Spill Imbalanced Classification,arvore,1.971808910369873
-07-Oil Spill Imbalanced Classification,logistico,0.38530611991882324
-07-Oil Spill Imbalanced Classification,rf,8.025354862213135
-07-Oil Spill Imbalanced Classification,svm,4.203704118728638
+02-Breast Cancer Wisconsin (Diagnostic),ann,0.5883421897888184
+02-Breast Cancer Wisconsin (Diagnostic),arvore,0.49152112007141113
+02-Breast Cancer Wisconsin (Diagnostic),logistico,0.1715071201324463
+02-Breast Cancer Wisconsin (Diagnostic),rf,2.3601150512695313
+02-Breast Cancer Wisconsin (Diagnostic),svm,0.9187531471252441
+03-Pima Indians Diabetes,ann,0.7886288166046143
+03-Pima Indians Diabetes,arvore,0.450009822845459
+03-Pima Indians Diabetes,logistico,0.12815284729003906
+03-Pima Indians Diabetes,rf,2.4964427947998047
+03-Pima Indians Diabetes,svm,1.800839900970459
+04-Ionosphere,ann,0.8951389789581299
+04-Ionosphere,arvore,0.46907806396484375
+04-Ionosphere,logistico,0.2906301021575928
+04-Ionosphere,rf,2.167510986328125
+04-Ionosphere,svm,0.7734818458557129
+05-phoneme,ann,6.3776350021362305
+05-phoneme,arvore,3.876023054122925
+05-phoneme,logistico,0.20784497261047363
+05-phoneme,rf,13.58998703956604
+05-phoneme,svm,44.41487789154053
+06-The Mammography (Kevin Woods),ann,20.134886026382446
+06-The Mammography (Kevin Woods),arvore,6.9788548946380615
+06-The Mammography (Kevin Woods),logistico,0.6123380661010742
+06-The Mammography (Kevin Woods),rf,23.668885946273804
+06-The Mammography (Kevin Woods),svm,163.2645070552826
+07-Oil Spill Imbalanced Classification,ann,1.8150999546051025
+07-Oil Spill Imbalanced Classification,arvore,1.7988228797912598
+07-Oil Spill Imbalanced Classification,logistico,0.375560998916626
+07-Oil Spill Imbalanced Classification,rf,6.057421922683716
+07-Oil Spill Imbalanced Classification,svm,2.665350914001465

@@ -17,6 +17,7 @@ library(foreach)
 library(doParallel)
 library(readr)
 library(nnet)
+library(C50)
 
 # ------------------------------------------------------------
 # Métricas de desempenho
@@ -134,46 +135,58 @@ treinar_modelo <- function(df, metodo, proporcao_treino = 0.7, nome_base = "desc
         tuneLength = 3,
         importance = "impurity"
       ),
-      
-      # ---------------- SVM (OTIMIZADO) ----------------
+      # ---------------- SVM (COM TUNING AUTOMÁTICO DO CARET) ----------------
       "svm" = {
         
-        train_contrl <- caret::trainControl(method = "cv", number = 5)
-        
-        C_vals  <- c(0.1, 1, 10)
-        sigma_vals <- c(0.01, 0.001)
-        grid <- expand.grid(C = C_vals, sigma = sigma_vals)
+        train_contrl <- caret::trainControl(
+          method = "cv",
+          number = 5
+        )
         
         # --- Pré-processamento especial ---
         df_train <- treino
         feats <- setdiff(names(df_train), "Class")
         
         # Fatores → números
-        for (v in feats) if (is.factor(df_train[[v]])) df_train[[v]] <- as.numeric(df_train[[v]])
+        for (v in feats) {
+          if (is.factor(df_train[[v]])) {
+            df_train[[v]] <- as.numeric(df_train[[v]])
+          }
+        }
         
-        pre_proc <- caret::preProcess(df_train[feats], method = c("center", "scale", "medianImpute"))
+        pre_proc <- caret::preProcess(
+          df_train[feats],
+          method = c("center", "scale", "medianImpute")
+        )
+        
         df_train_pp <- predict(pre_proc, df_train[feats])
         df_train_pp$Class <- df_train$Class
         
         # Preparar teste
         df_test_pp <- teste
-        for (v in setdiff(names(df_test_pp), "Class"))
-          if (is.factor(df_test_pp[[v]])) df_test_pp[[v]] <- as.numeric(df_test_pp[[v]])
+        for (v in setdiff(names(df_test_pp), "Class")) {
+          if (is.factor(df_test_pp[[v]])) {
+            df_test_pp[[v]] <- as.numeric(df_test_pp[[v]])
+          }
+        }
         
         df_test_pp <- predict(pre_proc, df_test_pp[feats])
         df_test_pp$Class <- teste$Class
         
-        # Treinar SVM
+        # 🔥 Aqui está a mudança fundamental:
+        # tuneLength faz o caret escolher automaticamente C e sigma.
         modelo_svm <- caret::train(
-          Class ~ ., data = df_train_pp,
+          Class ~ .,
+          data = df_train_pp,
           method = "svmRadial",
           metric = "Accuracy",
           trControl = train_contrl,
-          tuneGrid = grid
+          tuneLength = 10   # <--- caret escolhe C e sigma automaticamente
         )
         
         list(modelo = modelo_svm, df_test_pp = df_test_pp)
       },
+      
       
       # ---------------- REDE NEURAL ----------------
       "ann" = caret::train(
