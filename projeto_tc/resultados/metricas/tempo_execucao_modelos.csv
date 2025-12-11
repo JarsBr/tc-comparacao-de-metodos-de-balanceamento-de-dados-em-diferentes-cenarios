@@ -1,6 +1,11 @@
 Base,Modelo,TempoMedio
-04-Ionosphere,ann,1.4649131298065186
-04-Ionosphere,arvore,0.43134498596191406
-04-Ionosphere,logistico,0.15073513984680176
-04-Ionosphere,rf,0.9588809013366699
-04-Ionosphere,svm,0.9823050498962402
+04-Ionosphere,ann,0.6474759578704834
+04-Ionosphere,arvore,0.3036990165710449
+04-Ionosphere,logistico,0.2475900650024414
+04-Ionosphere,rf,1.3061449527740479
+04-Ionosphere,svm,0.6408429145812988
+06-The Mammography (Kevin Woods),ann,18.710464000701904
+06-The Mammography (Kevin Woods),arvore,5.456509828567505
+06-The Mammography (Kevin Woods),logistico,0.3792598247528076
+06-The Mammography (Kevin Woods),rf,20.4376699924469
+06-The Mammography (Kevin Woods),svm,240.28634691238403
