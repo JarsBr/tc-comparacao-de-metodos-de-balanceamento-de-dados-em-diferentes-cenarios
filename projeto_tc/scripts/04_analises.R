@@ -20,33 +20,34 @@ dir_graficos  <- "resultados/graficos/"
 if (!dir.exists(dir_metricas)) dir.create(dir_metricas, recursive = TRUE)
 if (!dir.exists(dir_graficos)) dir.create(dir_graficos, recursive = TRUE)
 
-# ------------------------------------------------------------
-# Carrega resultados
-# ------------------------------------------------------------
-arquivos <- list.files(dir_processed, pattern = "resultados_.*\\.RData$", full.names = TRUE)
+
+# --------------------------------------------
+# Carrega resultados (*.rds)
+# --------------------------------------------
+arquivos <- list.files(dir_processed, pattern = "resultados_.*\\.rds$", full.names = TRUE)
 
 if (length(arquivos) == 0) {
-  stop("Nenhum arquivo de resultados encontrado em data/processed/.
-       Execute antes o script 03_modelos.R.")
+  stop("Nenhum arquivo de resultados encontrado em data/processed/.")
 }
 
-# Função auxiliar: extrair nome do método (raw, smote, etc.)
 extrair_metodo <- function(caminho) {
-  gsub("resultados_|\\.RData", "", basename(caminho))
+  gsub("resultados_|\\.rds", "", basename(caminho))
 }
 
 lista_resultados <- list()
 
 for (arq in arquivos) {
-  load(arq)
   nome <- extrair_metodo(arq)
-  objeto <- get(paste0("resultados_", nome))
+  
+  objeto <- readRDS(arq)  # <-- segurança total
   objeto$Balanceamento <- toupper(nome)
+  
   lista_resultados[[nome]] <- objeto
 }
 
 # Junta tudo
 resultados_finais <- bind_rows(lista_resultados)
+
 
 # ------------------------------------------------------------
 # Consolidação geral (média por modelo e balanceamento)
@@ -126,15 +127,6 @@ grafico_f1 <- ggplot(metricas_resumo, aes(x = Balanceamento, y = F1, fill = Mode
   theme_minimal(base_size = 13)
 
 ggsave(file.path(dir_graficos, "comparacao_F1.png"), grafico_f1, width = 8, height = 5)
-
-# 2- Boxplot de acurácia por técnica
-grafico_acc <- ggplot(resultados_finais, aes(x = Balanceamento, y = Acuracia, fill = Balanceamento)) +
-  geom_boxplot() +
-  labs(title = "Distribuição da Acurácia por Técnica de Balanceamento", y = "Acurácia", x = "") +
-  theme_minimal(base_size = 13) +
-  theme(legend.position = "none")
-
-ggsave(file.path(dir_graficos, "boxplot_Acuracia.png"), grafico_acc, width = 7, height = 5)
 
 # 3- Heatmap comparando F1 entre modelos e técnicas
 grafico_heat <- metricas_resumo %>%

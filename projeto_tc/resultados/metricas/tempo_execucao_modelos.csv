@@ -1,36 +1,6 @@
 Base,Modelo,TempoMedio
-01-Credit Card Fraud Detection,ann,111.83335995674133
-01-Credit Card Fraud Detection,arvore,17.52511692047119
-01-Credit Card Fraud Detection,logistico,7.691472053527832
-01-Credit Card Fraud Detection,rf,102.01427698135376
-01-Credit Card Fraud Detection,svm,0
-02-Breast Cancer Wisconsin (Diagnostic),ann,0.013300895690917969
-02-Breast Cancer Wisconsin (Diagnostic),arvore,0.03011798858642578
-02-Breast Cancer Wisconsin (Diagnostic),logistico,0.0274808406829834
-02-Breast Cancer Wisconsin (Diagnostic),rf,0.08280420303344727
-02-Breast Cancer Wisconsin (Diagnostic),svm,0.05232405662536621
-03-Pima Indians Diabetes,ann,0.11346006393432617
-03-Pima Indians Diabetes,arvore,0.023218870162963867
-03-Pima Indians Diabetes,logistico,0.012610912322998047
-03-Pima Indians Diabetes,rf,0.09986019134521484
-03-Pima Indians Diabetes,svm,0.08494997024536133
-04-Ionosphere,ann,0.1456608772277832
-04-Ionosphere,arvore,0.027508020401000977
-04-Ionosphere,logistico,0.03265810012817383
-04-Ionosphere,rf,0.0660090446472168
-04-Ionosphere,svm,0.04538083076477051
-05-phoneme,ann,0.6307928562164307
-05-phoneme,arvore,0.08112001419067383
-05-phoneme,logistico,0.028294801712036133
-05-phoneme,rf,0.8227560520172119
-05-phoneme,svm,2.1829521656036377
-06-The Mammography (Kevin Woods),ann,1.2024919986724854
-06-The Mammography (Kevin Woods),arvore,0.15131592750549316
-06-The Mammography (Kevin Woods),logistico,0.10158491134643555
-06-The Mammography (Kevin Woods),rf,0
-06-The Mammography (Kevin Woods),svm,8.65526795387268
-07-Oil Spill Imbalanced Classification,ann,0.028374910354614258
-07-Oil Spill Imbalanced Classification,arvore,0.11062002182006836
-07-Oil Spill Imbalanced Classification,logistico,0.10595083236694336
-07-Oil Spill Imbalanced Classification,rf,0
-07-Oil Spill Imbalanced Classification,svm,0.20695805549621582
+04-Ionosphere,ann,1.4649131298065186
+04-Ionosphere,arvore,0.43134498596191406
+04-Ionosphere,logistico,0.15073513984680176
+04-Ionosphere,rf,0.9588809013366699
+04-Ionosphere,svm,0.9823050498962402
