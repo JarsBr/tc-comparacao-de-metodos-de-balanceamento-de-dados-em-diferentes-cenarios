@@ -1,0 +1,6 @@
+Base,Modelo,AcuraciaTreino
+04-Ionosphere,logistico,0.8789072039072039
+04-Ionosphere,arvore,0.9554639804639805
+04-Ionosphere,rf,0.9331501831501832
+04-Ionosphere,svm,0.9426434676434676
+04-Ionosphere,ann,0.9458485958485958
