@@ -1,28 +1,29 @@
 # ============================================================
 # Script: 03_modelos.R
-# Objetivo: Treinar e avaliar modelos de classificação
-# Modelos: Regressão Logística, Árvore, Random Forest (ranger), SVM e Rede Neural (nnet)
-# Paralelização: doParallel + foreach (com cluster reutilizável)
+# Objetivo: Treinar e avaliar os modelos de classificação
+# Modelos: Regressão Logística, Árvore (C5.0), Random Forest,
+#          SVM (Radial) e Rede Neural (nnet)
+# Entrada: Bases balanceadas e pré-processadas em data/processed/
+# Saída:   Métricas consolidadas por modelo e por base, além de
+#          arquivo com acurácia de treinamento e tempos de execução
 # ============================================================
 
 rm(list = ls())
 
 library(caret)
+library(C50)
 library(rpart)
 library(ranger)
 library(e1071)
-library(LiblineaR)
+library(nnet)
 library(dplyr)
 library(foreach)
 library(doParallel)
 library(readr)
-library(nnet)
-library(C50)
-library(kernlab)
 
-# ------------------------------------------------------------
-# Métricas de desempenho
-# ------------------------------------------------------------
+# ============================================================
+# 1. MÉTRICAS
+# ============================================================
 calcular_metricas <- function(real, previsto) {
   cm <- caret::confusionMatrix(
     data = previsto,
@@ -51,36 +52,42 @@ calcular_metricas <- function(real, previsto) {
   )
 }
 
-# ------------------------------------------------------------
-# Função auxiliar para debugging do SVM
-# ------------------------------------------------------------
-checar_predictors <- function(df) {
-  probs <- list()
+# ============================================================
+# 2. FUNÇÕES DE PRÉ-PROCESSAMENTO LEVE
+# ============================================================
+
+# Normalização global para modelos sensíveis à escala
+preprocessar_modelos_lineares <- function(df) {
+  feats <- setdiff(names(df), "Class")
+  for (v in feats)
+    if (is.factor(df[[v]])) df[[v]] <- as.numeric(df[[v]])
   
-  tipos <- sapply(df, class)
-  probs$tipos <- tipos
+  pp <- caret::preProcess(df[feats], method = c("center", "scale", "medianImpute"))
+  df_pp <- predict(pp, df[feats])
+  df_pp$Class <- df$Class
   
-  nas <- colSums(is.na(df))
-  if (any(nas > 0)) probs$nas <- nas[nas > 0]
-  
-  nzv <- caret::nearZeroVar(df, saveMetrics = TRUE)
-  if (any(nzv$nzv)) probs$nzv <- rownames(nzv)[nzv$nzv]
-  
-  consts <- names(which(sapply(df, function(x) length(unique(x[!is.na(x)])) < 2)))
-  if (length(consts) > 0) probs$constantes <- consts
-  
-  return(probs)
+  return(df_pp)
 }
 
-# ------------------------------------------------------------
-# Função principal de treino por modelo
-# ------------------------------------------------------------
+# Fixar classe positiva
+fixar_classe_positiva <- function(df) {
+  if (!"Class" %in% names(df)) stop("Class não encontrada!")
+  
+  # Ordem: classe majoritária no primeiro nível
+  df$Class <- relevel(df$Class, ref = names(sort(table(df$Class), decreasing = TRUE))[1])
+  return(df)
+}
+
+# ============================================================
+# 3. TREINAMENTO POR MODELO
+# ============================================================
 treinar_modelo <- function(df, metodo, proporcao_treino = 0.7, nome_base = "desconhecida") {
   
-  if (!"Class" %in% names(df)) stop("⚠️ Variável alvo 'Class' não encontrada.")
+  df <- fixar_classe_positiva(df)
   
   set.seed(123)
   idx <- caret::createDataPartition(df$Class, p = proporcao_treino, list = FALSE)
+  
   treino <- df[idx, ]
   teste  <- df[-idx, ]
   
@@ -88,119 +95,103 @@ treinar_modelo <- function(df, metodo, proporcao_treino = 0.7, nome_base = "desc
   
   resultado <- tryCatch({
     
-    ctrl <- caret::trainControl(method = "cv", number = 3, classProbs = FALSE)
+    ctrl <- caret::trainControl(method = "cv", number = 3)
     
+    # ============================================================
+    # MODELOS
+    # ============================================================
     modelo <- switch(
       metodo,
       
-      # ---------------- LOGÍSTICO ----------------
-      "logistico" = caret::train(
-        Class ~ ., data = treino,
-        method = "glm",
-        family = binomial,
-        trControl = ctrl
-      ),
+      # ------------------------------------------------------------
+      "logistico" =
+        caret::train(
+          Class ~ ., data = preprocessar_modelos_lineares(treino),
+          method = "glm",
+          family = binomial,
+          trControl = ctrl
+        ),
       
-      # ---------------- ÁRVORE (C5.0) ----------------
-      "arvore" = caret::train(
-        Class ~ ., data = treino,
-        method = "C5.0",
-        trControl = ctrl,
-        tuneGrid = expand.grid(
-          trials = c(1, 10, 20, 30),
-          model = "tree",
-          winnow = TRUE
-        )
-      ),
+      # ------------------------------------------------------------
+      "arvore" =
+        caret::train(
+          Class ~ ., data = treino,
+          method = "C5.0",
+          trControl = ctrl,
+          tuneGrid = expand.grid(
+            trials = c(1, 10, 20, 30),
+            model = "tree",
+            winnow = TRUE
+          )
+        ),
       
-      # ---------------- RANDOM FOREST ----------------
-      "rf" = caret::train(
-        Class ~ ., data = treino,
-        method = "ranger",
-        trControl = ctrl,
-        tuneLength = 3,
-        importance = "impurity"
-      ),
+      # ------------------------------------------------------------
+      "rf" =
+        caret::train(
+          Class ~ ., data = treino,
+          method = "ranger",
+          trControl = ctrl,
+          tuneLength = 3
+        ),
       
-      # ---------------- SVM RADIAL ----------------
+      # ------------------------------------------------------------
       "svm" = {
+        treino_pp <- preprocessar_modelos_lineares(treino)
+        teste_pp  <- preprocessar_modelos_lineares(teste)
         
-        #========= Pré-processamento exclusivo do SVM =========#
-        df_train <- treino
-        feats <- setdiff(names(df_train), "Class")
-        
-        # Fatores -> numeric
-        for (v in feats) if (is.factor(df_train[[v]])) df_train[[v]] <- as.numeric(df_train[[v]])
-        
-        pre_proc <- caret::preProcess(df_train[feats], method = c("center", "scale", "medianImpute"))
-        df_train_pp <- predict(pre_proc, df_train[feats])
-        df_train_pp$Class <- df_train$Class
-        
-        # Preparar teste
-        df_test_pp <- teste
-        for (v in setdiff(names(df_test_pp), "Class"))
-          if (is.factor(df_test_pp[[v]])) df_test_pp[[v]] <- as.numeric(df_test_pp[[v]])
-        
-        df_test_pp <- predict(pre_proc, df_test_pp[feats])
-        df_test_pp$Class <- teste$Class
-        
-        # Grid reduzido inspirado no "grid de ouro"
         C_vals <- c(0.25, 0.5, 1, 2)
         gam    <- c(0.5, 0.1, 0.01, 0.001)
-        grid <- expand.grid(C = C_vals, sigma = gam)
+        grid   <- expand.grid(C = C_vals, sigma = gam)
         
         modelo_svm <- caret::train(
-          Class ~ ., data = df_train_pp,
+          Class ~ ., data = treino_pp,
           method = "svmRadial",
           metric = "Accuracy",
-          trControl = caret::trainControl(method = "cv", number = 3, savePredictions = TRUE),
+          trControl = ctrl,
           tuneGrid = grid
         )
         
-        list(modelo = modelo_svm, df_test_pp = df_test_pp)
+        list(modelo = modelo_svm, teste_pp = teste_pp)
       },
       
-      # ---------------- REDE NEURAL ----------------
-      "ann" = caret::train(
-        Class ~ ., data = treino,
-        method = "nnet",
-        trControl = ctrl,
-        tuneLength = 3,
-        trace = FALSE
-      ),
+      # ------------------------------------------------------------
+      "ann" =
+        caret::train(
+          Class ~ ., data = preprocessar_modelos_lineares(treino),
+          method = "nnet",
+          trControl = ctrl,
+          tuneLength = 3,
+          trace = FALSE
+        ),
       
       stop("Método desconhecido.")
     )
     
-    # ===================== PREVISÃO ============================
+    # ============================================================
+    # PREVISÃO
+    # ============================================================
     if (metodo == "svm") {
-      prev <- predict(modelo$modelo, newdata = modelo$df_test_pp)
-      real <- modelo$df_test_pp$Class
+      prev <- predict(modelo$modelo, newdata = modelo$teste_pp)
+      real <- modelo$teste_pp$Class
+      acc_treino <- max(modelo$modelo$results$Accuracy)
     } else {
       prev <- predict(modelo, newdata = teste)
       real <- teste$Class
+      acc_treino <- max(modelo$results$Accuracy)
     }
     
     prev <- factor(prev, levels = levels(df$Class))
     
     metricas <- calcular_metricas(real, prev)
-    
-    # Acurácia do treino
-    acc_treino <- tryCatch({
-      if (metodo == "svm") max(modelo$modelo$results$Accuracy)
-      else max(modelo$results$Accuracy)
-    }, error = function(e) NA)
-    
     metricas$AcuraciaTreino <- acc_treino
     metricas$TempoSeg <- as.numeric(difftime(Sys.time(), t0, units = "secs"))
     metricas$Modelo <- metodo
-    metricas$Base   <- nome_base
+    metricas$Base <- nome_base
     
     metricas
     
   }, error = function(e) {
-    
-    warning(paste("⚠️ Erro ao treinar modelo", metodo, ":", e$message))
+    warning(paste("Erro no modelo", metodo, ":", e$message))
     
     tibble(
       Acuracia = NA, Precisao = NA, Recall = NA, F1 = NA,
@@ -212,11 +203,11 @@ treinar_modelo <- function(df, metodo, proporcao_treino = 0.7, nome_base = "desc
   return(resultado)
 }
 
-# ------------------------------------------------------------
-# Treinar todos os modelos
-# ------------------------------------------------------------
-treinar_todos_modelos <- function(df, nome_base = "desconhecida") {
-  dplyr::bind_rows(
+# ============================================================
+# 4. Treinar todos os modelos
+# ============================================================
+treinar_todos_modelos <- function(df, nome_base) {
+  bind_rows(
     treinar_modelo(df, "logistico", nome_base = nome_base),
     treinar_modelo(df, "arvore",    nome_base = nome_base),
     treinar_modelo(df, "rf",        nome_base = nome_base),
@@ -225,88 +216,62 @@ treinar_todos_modelos <- function(df, nome_base = "desconhecida") {
   )
 }
 
-# ------------------------------------------------------------
-# Funções de cluster
-# ------------------------------------------------------------
+# ============================================================
+# 5. Funções de CLUSTER
+# ============================================================
 iniciar_cluster <- function() {
-  num_cores <- max(1, parallel::detectCores() - 1)
-  cl <- parallel::makeCluster(num_cores)
-  doParallel::registerDoParallel(cl)
-  cat(paste0("Cluster inicializado com ", num_cores, " núcleos.\n"))
+  n <- max(1, parallel::detectCores() - 1)
+  cl <- makeCluster(n)
+  registerDoParallel(cl)
+  message("Cluster iniciado com ", n, " núcleos.")
   return(cl)
 }
 
 finalizar_cluster <- function(cl) {
   if (!is.null(cl)) {
-    parallel::stopCluster(cl)
-    foreach::registerDoSEQ()
-    cat("Cluster finalizado.\n")
+    stopCluster(cl)
+    registerDoSEQ()
+    message("Cluster finalizado.")
   }
 }
 
-# ------------------------------------------------------------
-# Função principal
-# ------------------------------------------------------------
+# ============================================================
+# 6. Função principal
+# ============================================================
 treinar_em_lista <- function(lista_bases, cl = NULL) {
   
-  own_cluster <- is.null(cl)
-  if (own_cluster) cl <- iniciar_cluster()
-  on.exit(if (own_cluster) finalizar_cluster(cl), add = TRUE)
+  own <- is.null(cl)
+  if (own) cl <- iniciar_cluster()
+  on.exit(if (own) finalizar_cluster(cl), add = TRUE)
   
-  parallel::clusterExport(
+  clusterExport(
     cl,
     varlist = c(
-      "treinar_todos_modelos",
-      "treinar_modelo",
-      "calcular_metricas",
-      "checar_predictors"
+      "treinar_todos_modelos", "treinar_modelo",
+      "calcular_metricas", "preprocessar_modelos_lineares",
+      "fixar_classe_positiva"
     ),
     envir = environment()
   )
   
   clusterEvalQ(cl, {
-    library(C50)
-    library(caret)
-    library(kernlab)
-    library(rpart)
-    library(ranger)
-    library(e1071)
-    library(nnet)
-    library(dplyr)
-    library(LiblineaR)
+    library(caret); library(C50)
+    library(ranger); library(e1071)
+    library(nnet);  library(dplyr)
   })
   
   resultados <- foreach(
     nome_base = names(lista_bases),
-    .combine = bind_rows,
-    .packages = c("caret", "rpart", "ranger", "e1071", "LiblineaR", "dplyr", "nnet", "kernlab")
+    .combine   = bind_rows,
+    .packages  = c("caret", "C50", "ranger", "e1071", "nnet", "dplyr")
   ) %dopar% {
-    
-    df <- lista_bases[[nome_base]]
-    res <- treinar_todos_modelos(df, nome_base = nome_base)
-    cat(paste0("✅ Concluído: ", nome_base, "\n"))
-    res
+    treinar_todos_modelos(lista_bases[[nome_base]], nome_base)
   }
-  
-  cat("✅ Treinamento paralelo concluído!\n")
-  
-  log_tempo <- resultados %>%
-    group_by(Base, Modelo) %>%
-    summarise(
-      TempoMedio = mean(TempoSeg, na.rm = TRUE),
-      .groups = "drop"
-    )
   
   dir.create("resultados/metricas", recursive = TRUE, showWarnings = FALSE)
   
-  readr::write_csv(log_tempo,
-                   file.path("resultados/metricas", "tempo_execucao_modelos.csv"))
-  
-  acuracia_treino <- resultados %>%
-    select(Base, Modelo, AcuraciaTreino)
-  
-  readr::write_csv(acuracia_treino,
-                   file.path("resultados/metricas", "acuracia_treinamento_modelos.csv"))
+  write_csv(resultados,
+            "resultados/metricas/metricas_completas.csv")
   
   return(resultados)
 }
