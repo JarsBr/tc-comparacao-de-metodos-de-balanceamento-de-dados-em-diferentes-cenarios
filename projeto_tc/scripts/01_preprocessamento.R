@@ -97,6 +97,17 @@ preprocessar_base <- function(caminho_arquivo) {
     warning(paste("A base", nome_base, "não contém variável alvo identificável."))
   }
   
+
+  # FIX:Remove colunas de ID (numéricas e únicas por instância)
+  cols_id <- sapply(dados, function(col) {
+    is.numeric(col) && length(unique(col)) == nrow(dados)
+  })
+
+  if (any(cols_id)) {
+    cat("   ↳ Nome coluna removida por ser ID:", names(dados)[cols_id], "\n")
+    dados <- dados[, !cols_id, drop = FALSE]
+  }
+  
   return(dados)
 }
 

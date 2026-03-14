@@ -75,39 +75,39 @@ tempos_execucao$modelos <- medir_tempo(
   quote({
     # Carrega script de modelos (com paralelismo otimizado)
     sys.source(file.path(dir_scripts, "03_modelos.R"), envir = env_execucao)
-    
+
     # Carrega bases processadas e balanceadas
     load(file.path(dir_processed, "lista_bases_raw.RData"),  envir = env_execucao)
     load(file.path(dir_processed, "lista_bases_smote.RData"), envir = env_execucao)
     load(file.path(dir_processed, "lista_bases_rose.RData"),  envir = env_execucao)
     load(file.path(dir_processed, "lista_bases_undersampling.RData"), envir = env_execucao)
     load(file.path(dir_processed, "lista_bases_oversampling.RData"),  envir = env_execucao)
-    
+
     # Inicia cluster (usado em todas as execuções)
     with(env_execucao, {
       cl <- iniciar_cluster()
-      
+
       cat("\n [1/5] Treinando modelos: RAW\n")
       resultados_raw <- treinar_em_lista(lista_bases_raw, cl)
       saveRDS(resultados_raw, file.path(dir_processed, "resultados_raw.rds"))
-      
+
       cat("\n [2/5] Treinando modelos: SMOTE\n")
       resultados_smote <- treinar_em_lista(bases_smote, cl)
       saveRDS(resultados_smote, file.path(dir_processed, "resultados_smote.rds"))
-      
+
       cat("\n [3/5] Treinando modelos: ROSE\n")
       resultados_rose <- treinar_em_lista(bases_rose, cl)
       saveRDS(resultados_rose, file.path(dir_processed, "resultados_rose.rds"))
-      
+
       cat("\n [4/5] Treinando modelos: UNDERSAMPLING\n")
       resultados_undersampling <- treinar_em_lista(bases_under, cl)
       saveRDS(resultados_undersampling, file.path(dir_processed, "resultados_undersampling.rds"))
-      
+
       cat("\n [5/5] Treinando modelos: OVERSAMPLING\n")
       resultados_oversampling <- treinar_em_lista(bases_over, cl)
       saveRDS(resultados_oversampling, file.path(dir_processed, "resultados_oversampling.rds"))
-      
-      
+
+
       # Finaliza cluster
       finalizar_cluster(cl)
     })
@@ -143,3 +143,4 @@ cat("\n✅ Pipeline completo executado com sucesso!\n")
 cat("   Resultados disponíveis em:\n")
 cat("   - data/processed/ (dados intermediários)\n")
 cat("   - resultados/metricas/ e resultados/graficos/\n")
+
